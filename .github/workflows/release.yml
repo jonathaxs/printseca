@@ -1,0 +1,92 @@
+name: Release
+
+# Gera os instaladores das 3 plataformas e publica num release (rascunho).
+# Dispare criando uma tag `vX.Y.Z` (ex.: `git tag v0.1.0 && git push --tags`)
+# ou manualmente em Actions › Release › Run workflow.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest # Apple Silicon (.dmg)
+            target: aarch64-apple-darwin
+            args: "--target aarch64-apple-darwin"
+          - platform: ubuntu-22.04 # Linux x64 (.AppImage/.deb/.rpm)
+            target: ""
+            args: ""
+          - platform: windows-latest # Windows x64 (.exe NSIS)
+            target: ""
+            args: ""
+
+    runs-on: ${{ matrix.platform }}
+    defaults:
+      run:
+        working-directory: printseca
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./printseca/src-tauri -> target"
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Prepare SumatraPDF (auxiliar de impressão no Windows)
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          $ver = "3.6.1"
+          $zip = "$env:RUNNER_TEMP\sumatra.zip"
+          Invoke-WebRequest -Uri "https://www.sumatrapdfreader.org/dl/rel/$ver/SumatraPDF-$ver-64.zip" -OutFile $zip
+          Expand-Archive -Path $zip -DestinationPath "$env:RUNNER_TEMP\sumatra" -Force
+          New-Item -ItemType Directory -Force -Path "src-tauri\resources" | Out-Null
+          Copy-Item "$env:RUNNER_TEMP\sumatra\SumatraPDF-$ver-64.exe" "src-tauri\resources\SumatraPDF.exe" -Force
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      - name: Build & release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Assinatura + notarização macOS. Configure estes secrets no repositório
+          # (Settings › Secrets and variables › Actions). Se ficarem vazios, o
+          # build do macOS sai SEM assinatura (abre com botão direito › Abrir).
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        with:
+          projectPath: printseca
+          args: ${{ matrix.args }}
+          tagName: ${{ github.ref_type == 'tag' && github.ref_name || format('v0.0.0-build{0}', github.run_number) }}
+          releaseName: Printseca ${{ github.ref_type == 'tag' && github.ref_name || format('(build {0})', github.run_number) }}
+          releaseBody: "Baixe o instalador da sua plataforma nos assets abaixo."
+          releaseDraft: true
+          prerelease: false
