@@ -1,0 +1,41 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4f8cff"/>
+      <stop offset="1" stop-color="#2356d6"/>
+    </linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#eef2fb"/>
+    </linearGradient>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#0a2a6b" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+
+  <!-- fundo squircle com margem transparente (estilo macOS) -->
+  <rect x="64" y="64" width="896" height="896" rx="208" fill="url(#bg)"/>
+
+  <!-- folha saindo por cima, com barras de teste CMYK -->
+  <g filter="url(#sh)">
+    <rect x="332" y="226" width="360" height="384" rx="26" fill="#ffffff"/>
+  </g>
+  <rect x="372" y="286" width="280" height="44" rx="10" fill="#00aeef"/>
+  <rect x="372" y="346" width="280" height="44" rx="10" fill="#ec008c"/>
+  <rect x="372" y="406" width="280" height="44" rx="10" fill="#ffd400"/>
+  <rect x="372" y="466" width="280" height="44" rx="10" fill="#1c1c1c"/>
+
+  <!-- corpo da impressora -->
+  <g filter="url(#sh)">
+    <rect x="262" y="556" width="500" height="300" rx="46" fill="url(#body)"/>
+  </g>
+  <!-- bandeja de saída -->
+  <rect x="330" y="700" width="364" height="92" rx="20" fill="#dbe5fb"/>
+  <rect x="330" y="700" width="364" height="30" rx="15" fill="#c7d6f6"/>
+
+  <!-- gota de tinta (assinatura: anti-ressecamento) -->
+  <g transform="translate(322,628) scale(1.05)">
+    <path d="M0,-44 C 24,-10 40,12 40,32 a 40 40 0 1 1 -80 0 C -40,12 -24,-10 0,-44 Z" fill="#12c9d6"/>
+    <ellipse cx="-12" cy="34" rx="10" ry="14" fill="#ffffff" opacity="0.55"/>
+  </g>
+</svg>
