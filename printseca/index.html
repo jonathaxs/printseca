@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Printseca</title>
+    <script type="module" src="/src/main.ts" defer></script>
+  </head>
+
+  <body>
+    <main class="app">
+      <header class="header">
+        <h1>🖨️ Printseca</h1>
+        <p class="subtitle">Mantém a tinta da impressora fluindo</p>
+      </header>
+
+      <section class="card status" id="status-card">
+        <div class="status-main">
+          <span class="days" id="days">—</span>
+          <span class="days-label" id="days-label">carregando…</span>
+        </div>
+        <dl class="status-meta">
+          <div><dt>Última impressão</dt><dd id="last-print">—</dd></div>
+          <div><dt>Próxima</dt><dd id="next-due">—</dd></div>
+        </dl>
+      </section>
+
+      <div class="actions">
+        <button class="btn primary" id="print-now">Imprimir agora</button>
+        <button class="btn ghost" id="mark-printed">Já imprimi manualmente</button>
+      </div>
+
+      <section class="card">
+        <h2>Configurações</h2>
+
+        <div class="field">
+          <label for="interval">Imprimir a cada</label>
+          <div class="interval-row">
+            <input type="number" id="interval" min="1" max="365" />
+            <span class="unit">dias</span>
+            <div class="chips" id="interval-chips">
+              <button type="button" data-v="7">7</button>
+              <button type="button" data-v="10">10</button>
+              <button type="button" data-v="14">14</button>
+              <button type="button" data-v="20">20</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Quando vencer</label>
+          <div class="segmented" id="mode">
+            <label class="seg"><input type="radio" name="mode" value="notify" /><span><strong>Avisar</strong><small>Notifica e você clica em imprimir</small></span></label>
+            <label class="seg"><input type="radio" name="mode" value="auto" /><span><strong>Automático</strong><small>Imprime sozinho se a impressora estiver pronta</small></span></label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Página</label>
+          <div class="segmented" id="color">
+            <label class="seg"><input type="radio" name="color" value="true" /><span><strong>Colorida</strong><small>Exercita todas as tintas (CMYK)</small></span></label>
+            <label class="seg"><input type="radio" name="color" value="false" /><span><strong>Preto e branco</strong><small>Usa só a tinta preta</small></span></label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="printer">Impressora</label>
+          <select id="printer"></select>
+        </div>
+
+        <div class="field toggle-field">
+          <label for="autostart">Iniciar junto com o sistema</label>
+          <input type="checkbox" id="autostart" class="switch" />
+        </div>
+
+        <button class="btn primary block" id="save">Salvar configurações</button>
+      </section>
+    </main>
+
+    <div class="toast" id="toast"></div>
+  </body>
+</html>
