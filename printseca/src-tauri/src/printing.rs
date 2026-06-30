@@ -1,3 +1,16 @@
+// ============================================================================
+// printing.rs — Impressão e listagem de impressoras
+//
+// A estratégia muda por sistema operacional (usamos `#[cfg(target_os = ...)]`
+// para compilar só o trecho certo em cada plataforma):
+//   • macOS / Linux: usam o CUPS, então chamamos os comandos `lpstat` e `lp`.
+//   • Windows: não tem CUPS; embutimos o programa SumatraPDF e o chamamos para
+//     imprimir o PDF em silêncio.
+//
+// Detalhe importante: NÃO precisamos de uma "flag de cor". Como geramos dois
+// PDFs (um colorido e um só preto), imprimir em P&B é só escolher o arquivo PB.
+// ============================================================================
+
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -6,9 +19,11 @@ use tauri::{AppHandle, Manager, Runtime};
 
 /// Lista as impressoras disponíveis no sistema.
 pub fn list_printers() -> Vec<String> {
+    // `lpstat -e` lista os nomes das impressoras (CUPS).
     #[cfg(not(target_os = "windows"))]
     let output = Command::new("lpstat").arg("-e").output();
 
+    // No Windows pedimos a lista ao PowerShell.
     #[cfg(target_os = "windows")]
     let output = Command::new("powershell")
         .args([
@@ -18,6 +33,8 @@ pub fn list_printers() -> Vec<String> {
         ])
         .output();
 
+    // Pega a saída do comando, quebra em linhas, remove espaços e linhas vazias.
+    // Se o comando falhar, devolvemos uma lista vazia (unwrap_or_default).
     output
         .ok()
         .map(|o| {
@@ -30,7 +47,7 @@ pub fn list_printers() -> Vec<String> {
         .unwrap_or_default()
 }
 
-/// Caminho do PDF de manutenção (colorido ou PB).
+/// Caminho do PDF de manutenção (colorido ou P&B).
 pub fn pdf_path<R: Runtime>(app: &AppHandle<R>, color: bool) -> Result<PathBuf, String> {
     let name = if color {
         "manutencao-cor.pdf"
@@ -38,8 +55,9 @@ pub fn pdf_path<R: Runtime>(app: &AppHandle<R>, color: bool) -> Result<PathBuf, 
         "manutencao-pb.pdf"
     };
 
-    // Em dev usamos os arquivos diretamente de src-tauri/resources;
-    // em release eles vêm empacotados no resource dir.
+    // Em desenvolvimento (debug) os PDFs ficam em src-tauri/resources;
+    // já no app instalado (release) eles vêm empacotados no "resource dir".
+    // `env!("CARGO_MANIFEST_DIR")` é a pasta do projeto no momento da compilação.
     #[cfg(debug_assertions)]
     {
         let dev = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -50,12 +68,13 @@ pub fn pdf_path<R: Runtime>(app: &AppHandle<R>, color: bool) -> Result<PathBuf, 
         }
     }
 
+    // Em release: o Tauri resolve o caminho do recurso empacotado.
     app.path()
         .resolve(format!("resources/{name}"), BaseDirectory::Resource)
         .map_err(|e| e.to_string())
 }
 
-/// Imprime o PDF de manutenção na impressora indicada (ou na padrão).
+/// Imprime o PDF de manutenção na impressora indicada (ou na padrão se None).
 pub fn print_pdf<R: Runtime>(
     app: &AppHandle<R>,
     color: bool,
@@ -65,12 +84,13 @@ pub fn print_pdf<R: Runtime>(
 
     #[cfg(not(target_os = "windows"))]
     {
-        // macOS / Linux: CUPS
+        // macOS / Linux: `lp [-d impressora] arquivo.pdf`
         let mut cmd = Command::new("lp");
         if let Some(p) = printer {
-            cmd.arg("-d").arg(p);
+            cmd.arg("-d").arg(p); // -d escolhe a impressora; sem isso, usa a padrão
         }
         cmd.arg(&pdf);
+        // `.status()` roda o comando e espera ele terminar.
         let status = cmd
             .status()
             .map_err(|e| format!("falha ao executar 'lp': {e}"))?;
@@ -83,7 +103,7 @@ pub fn print_pdf<R: Runtime>(
 
     #[cfg(target_os = "windows")]
     {
-        // Windows: sidecar SumatraPDF empacotado junto ao app
+        // Windows: usamos o SumatraPDF.exe que é empacotado junto ao app.
         let sumatra = app
             .path()
             .resolve("SumatraPDF.exe", BaseDirectory::Resource)
@@ -91,13 +111,13 @@ pub fn print_pdf<R: Runtime>(
         let mut cmd = Command::new(sumatra);
         match printer {
             Some(p) => {
-                cmd.args(["-print-to", p]);
+                cmd.args(["-print-to", p]); // imprime numa impressora específica
             }
             None => {
-                cmd.arg("-print-to-default");
+                cmd.arg("-print-to-default"); // ou na impressora padrão
             }
         }
-        cmd.arg("-silent").arg(&pdf);
+        cmd.arg("-silent").arg(&pdf); // -silent = sem abrir janela/diálogo
         let status = cmd
             .status()
             .map_err(|e| format!("falha ao executar SumatraPDF: {e}"))?;
