@@ -1,0 +1,20 @@
+<!-- Ícone da barra de menu / bandeja (macOS/Windows/Linux).
+     "Template image": desenhado só em PRETO sobre fundo TRANSPARENTE.
+     O próprio sistema pinta de preto (light mode) ou branco (dark mode).
+     Estilo de linha fina, no espírito dos ícones nativos do macOS. -->
+<svg width="44" height="44" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+  <g fill="none" stroke="#000000" stroke-width="2.6"
+     stroke-linejoin="round" stroke-linecap="round">
+    <!-- folha saindo por cima (retângulo aberto embaixo, escondido pelo corpo) -->
+    <path d="M15 20 V9 a2 2 0 0 1 2-2 h10 a2 2 0 0 1 2 2 v11"/>
+    <!-- duas linhas de "teste" na folha -->
+    <line x1="18.5" y1="11.5" x2="25.5" y2="11.5"/>
+    <line x1="18.5" y1="15"   x2="25.5" y2="15"/>
+    <!-- corpo da impressora -->
+    <rect x="9" y="20" width="26" height="13" rx="2.5"/>
+    <!-- bandeja de saída embaixo -->
+    <path d="M14 33 v3 a1.5 1.5 0 0 0 1.5 1.5 h13 a1.5 1.5 0 0 0 1.5-1.5 v-3"/>
+  </g>
+  <!-- luzinha indicadora (preenchida) -->
+  <circle cx="30.5" cy="26.5" r="1.6" fill="#000000"/>
+</svg>

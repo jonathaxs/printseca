@@ -305,10 +305,21 @@ pub fn run() {
                 ],
             )?;
 
-            // Cria o ícone da bandeja (reusa o ícone do app) com o menu acima.
+            // Ícone da bandeja: um PNG monocromático embutido no binário.
+            // include_bytes! copia o arquivo para dentro do executável durante
+            // a compilação, então não dependemos de empacotá-lo como recurso.
+            // Junto com `icon_as_template(true)`, o macOS pinta esse ícone de
+            // preto no modo claro e de branco no modo escuro, combinando com a
+            // barra de menu (nos demais sistemas o PNG é usado como está).
+            let tray_icon =
+                tauri::image::Image::from_bytes(include_bytes!("../icons/tray.png"))
+                    .expect("tray.png inválido");
+
+            // Cria o ícone da bandeja com o menu acima.
             // on_menu_event = o que fazer quando clicam em cada item do menu.
             let _tray = TrayIconBuilder::with_id("tray")
-                .icon(app.default_window_icon().unwrap().clone())
+                .icon(tray_icon)
+                .icon_as_template(true)
                 .tooltip("Printseca")
                 .menu(&menu)
                 .show_menu_on_left_click(true)
