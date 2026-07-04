@@ -12,33 +12,33 @@
     <main class="app">
       <header class="header">
         <h1>🖨️ Printseca</h1>
-        <p class="subtitle">Mantém a tinta da impressora fluindo</p>
+        <p class="subtitle" data-i18n="app.subtitle">Mantém a tinta da impressora fluindo</p>
       </header>
 
       <section class="card status" id="status-card">
         <div class="status-main">
           <span class="days" id="days">—</span>
-          <span class="days-label" id="days-label">carregando…</span>
+          <span class="days-label" id="days-label" data-i18n="status.loading">carregando…</span>
         </div>
         <dl class="status-meta">
-          <div><dt>Última impressão</dt><dd id="last-print">—</dd></div>
-          <div><dt>Próxima</dt><dd id="next-due">—</dd></div>
+          <div><dt data-i18n="status.lastPrint">Última impressão</dt><dd id="last-print">—</dd></div>
+          <div><dt data-i18n="status.next">Próxima</dt><dd id="next-due">—</dd></div>
         </dl>
       </section>
 
       <div class="actions">
-        <button class="btn primary" id="print-now">Imprimir agora</button>
-        <button class="btn ghost" id="mark-printed">Já imprimi manualmente</button>
+        <button class="btn primary" id="print-now" data-i18n="action.printNow">Imprimir agora</button>
+        <button class="btn ghost" id="mark-printed" data-i18n="action.markPrinted">Já imprimi manualmente</button>
       </div>
 
       <section class="card">
-        <h2>Configurações</h2>
+        <h2 data-i18n="settings.title">Configurações</h2>
 
         <div class="field">
-          <label for="interval">Imprimir a cada</label>
+          <label for="interval" data-i18n="settings.interval">Imprimir a cada</label>
           <div class="interval-row">
             <input type="number" id="interval" min="1" max="365" />
-            <span class="unit">dias</span>
+            <span class="unit" data-i18n="settings.days">dias</span>
             <div class="chips" id="interval-chips">
               <button type="button" data-v="7">7</button>
               <button type="button" data-v="10">10</button>
@@ -49,32 +49,41 @@
         </div>
 
         <div class="field">
-          <label>Quando vencer</label>
+          <label data-i18n="settings.whenDue">Quando vencer</label>
           <div class="segmented" id="mode">
-            <label class="seg"><input type="radio" name="mode" value="notify" /><span><strong>Avisar</strong><small>Notifica e você clica em imprimir</small></span></label>
-            <label class="seg"><input type="radio" name="mode" value="auto" /><span><strong>Automático</strong><small>Imprime sozinho se a impressora estiver pronta</small></span></label>
+            <label class="seg"><input type="radio" name="mode" value="notify" /><span><strong data-i18n="mode.notify.title">Avisar</strong><small data-i18n="mode.notify.desc">Notifica e você clica em imprimir</small></span></label>
+            <label class="seg"><input type="radio" name="mode" value="auto" /><span><strong data-i18n="mode.auto.title">Automático</strong><small data-i18n="mode.auto.desc">Imprime sozinho se a impressora estiver pronta</small></span></label>
           </div>
         </div>
 
         <div class="field">
-          <label>Página</label>
+          <label data-i18n="settings.page">Página</label>
           <div class="segmented" id="color">
-            <label class="seg"><input type="radio" name="color" value="true" /><span><strong>Colorida</strong><small>Exercita todas as tintas (CMYK)</small></span></label>
-            <label class="seg"><input type="radio" name="color" value="false" /><span><strong>Preto e branco</strong><small>Usa só a tinta preta</small></span></label>
+            <label class="seg"><input type="radio" name="color" value="true" /><span><strong data-i18n="color.true.title">Colorida</strong><small data-i18n="color.true.desc">Exercita todas as tintas (CMYK)</small></span></label>
+            <label class="seg"><input type="radio" name="color" value="false" /><span><strong data-i18n="color.false.title">Preto e branco</strong><small data-i18n="color.false.desc">Usa só a tinta preta</small></span></label>
           </div>
         </div>
 
         <div class="field">
-          <label for="printer">Impressora</label>
+          <label for="printer" data-i18n="settings.printer">Impressora</label>
           <select id="printer"></select>
         </div>
 
+        <div class="field">
+          <label for="lang" data-i18n="settings.language">Idioma</label>
+          <select id="lang">
+            <option value="auto" data-i18n="lang.auto">Automático (sistema)</option>
+            <option value="pt">Português</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+
         <div class="field toggle-field">
-          <label for="autostart">Iniciar junto com o sistema</label>
+          <label for="autostart" data-i18n="settings.autostart">Iniciar junto com o sistema</label>
           <input type="checkbox" id="autostart" class="switch" />
         </div>
 
-        <button class="btn primary block" id="save">Salvar configurações</button>
+        <button class="btn primary block" id="save" data-i18n="settings.save">Salvar configurações</button>
       </section>
     </main>
 

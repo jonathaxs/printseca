@@ -25,4 +25,6 @@ tauri-plugin-autostart = "2"
 tauri-plugin-single-instance = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+# Detecta o idioma configurado no sistema operacional (para o i18n "automático").
+sys-locale = "0.3"
 

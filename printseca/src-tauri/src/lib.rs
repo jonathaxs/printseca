@@ -15,6 +15,7 @@
 //                          plugins e estado a partir de qualquer lugar.
 // ============================================================================
 
+mod i18n; // traduções do backend (menu da bandeja e notificações)
 mod printing; // funções de impressão (lp no mac/linux, SumatraPDF no Windows)
 mod settings; // carregar/salvar a configuração e contas de datas
 
@@ -31,10 +32,14 @@ use tauri_plugin_notification::NotificationExt; // habilita app.notification()
 
 use settings::Config;
 
-/// Guardamos a "alça" do item de status do menu para conseguir mudar o texto
-/// dele depois (ex.: "Próxima impressão em 5 dias") a partir do agendador.
+/// Guardamos as "alças" dos itens do menu para mudar os textos depois: o status
+/// (ex.: "Próxima impressão em 5 dias") a partir do agendador, e os demais
+/// rótulos quando o usuário troca o idioma no seletor.
 struct TrayHandles {
     status_item: MenuItem<Wry>,
+    print_item: MenuItem<Wry>,
+    settings_item: MenuItem<Wry>,
+    quit_item: MenuItem<Wry>,
 }
 
 /// Pacote de estado que enviamos ao frontend. O `#[derive(Serialize)]` ensina o
@@ -51,6 +56,10 @@ struct StateView {
     days_left: i64,
     autostart: bool,
     printers: Vec<String>,
+    /// Idioma EFETIVO já resolvido ("pt"/"en") — o frontend usa para traduzir.
+    lang: String,
+    /// Preferência salva ("auto"/"pt"/"en") — o que o seletor mostra selecionado.
+    lang_pref: String,
 }
 
 /// Monta o StateView juntando a config salva + dados "ao vivo" (lista de
@@ -66,26 +75,18 @@ fn build_state_view<R: Runtime>(app: &AppHandle<R>, cfg: &Config) -> StateView {
         days_left: settings::days_left(cfg),
         autostart: app.autolaunch().is_enabled().unwrap_or(false),
         printers: printing::list_printers(),
+        lang: i18n::code(i18n::resolve(cfg)).into(),
+        lang_pref: cfg.lang.clone(),
     }
 }
 
-/// Texto curto que aparece no topo do menu da bandeja.
+/// Texto curto que aparece no topo do menu da bandeja (já traduzido).
 fn status_text(cfg: &Config) -> String {
-    match cfg.last_print_ts {
-        None => "Configurando…".into(),
-        Some(_) => {
-            let d = settings::days_left(cfg);
-            if d > 1 {
-                format!("Próxima impressão em {d} dias")
-            } else if d == 1 {
-                "Próxima impressão amanhã".into()
-            } else if d == 0 {
-                "Imprimir hoje".into()
-            } else {
-                format!("Atrasado há {} dia(s)", -d)
-            }
-        }
-    }
+    i18n::status_text(
+        i18n::resolve(cfg),
+        settings::days_left(cfg),
+        cfg.last_print_ts.is_some(),
+    )
 }
 
 /// Atualiza o texto do item de status no menu (se a bandeja já existir).
@@ -93,6 +94,17 @@ fn status_text(cfg: &Config) -> String {
 fn update_tray_status<R: Runtime>(app: &AppHandle<R>, cfg: &Config) {
     if let Some(state) = app.try_state::<TrayHandles>() {
         let _ = state.status_item.set_text(status_text(cfg));
+    }
+}
+
+/// Retraduz TODOS os itens do menu da bandeja (usado ao trocar o idioma).
+fn update_tray_lang<R: Runtime>(app: &AppHandle<R>, cfg: &Config) {
+    if let Some(state) = app.try_state::<TrayHandles>() {
+        let labels = i18n::tray_labels(i18n::resolve(cfg));
+        let _ = state.status_item.set_text(status_text(cfg));
+        let _ = state.print_item.set_text(labels.print);
+        let _ = state.settings_item.set_text(labels.settings);
+        let _ = state.quit_item.set_text(labels.quit);
     }
 }
 
@@ -146,22 +158,21 @@ fn check_schedule(app: &AppHandle) {
         return;
     }
 
+    // Idioma para as notificações (não muda durante esta função).
+    let lang = i18n::resolve(&cfg);
+
     if cfg.mode == "auto" {
         // Modo automático: tenta imprimir sozinho.
         match do_print(app, &mut cfg) {
-            Ok(()) => notify(
-                app,
-                "Impressão de manutenção concluída",
-                "O Printseca imprimiu a página para manter a tinta fluindo.",
-            ),
+            Ok(()) => {
+                let (title, body) = i18n::notif_auto_ok(lang);
+                notify(app, title, body);
+            }
             Err(e) => {
                 // Falhou (impressora desligada/sem papel): avisa, sem insistir.
                 if should_notify(&cfg) {
-                    notify(
-                        app,
-                        "Não consegui imprimir",
-                        &format!("Verifique a impressora. ({e})"),
-                    );
+                    let body = format!("{} ({e})", i18n::notif_check_printer(lang));
+                    notify(app, i18n::notif_fail_title(lang), &body);
                     cfg.last_notified_ts = Some(settings::now_ts());
                     settings::save_config(app, &cfg);
                 }
@@ -169,11 +180,8 @@ fn check_schedule(app: &AppHandle) {
         }
     } else if should_notify(&cfg) {
         // Modo "avisar": só notifica e deixa o usuário clicar em Imprimir.
-        notify(
-            app,
-            "Hora de imprimir!",
-            "Abra o Printseca e clique em \"Imprimir agora\" para não deixar a tinta secar.",
-        );
+        let (title, body) = i18n::notif_due(lang);
+        notify(app, title, body);
         cfg.last_notified_ts = Some(settings::now_ts());
         settings::save_config(app, &cfg);
     }
@@ -200,14 +208,21 @@ fn save_config(
     mode: String,
     color: bool,
     printer: Option<String>,
+    lang: String,
 ) -> StateView {
     let mut cfg = settings::load_config(&app);
     cfg.interval_days = interval_days.clamp(1, 365);
     cfg.mode = if mode == "auto" { "auto" } else { "notify" }.into();
     cfg.color = color;
     cfg.printer = printer.filter(|s| !s.is_empty());
+    // Só aceita valores conhecidos; qualquer outra coisa vira "auto".
+    cfg.lang = match lang.as_str() {
+        "pt" | "en" => lang,
+        _ => "auto".into(),
+    };
     settings::save_config(&app, &cfg);
-    update_tray_status(&app, &cfg);
+    // Retraduz o menu da bandeja (o idioma pode ter mudado).
+    update_tray_lang(&app, &cfg);
     build_state_view(&app, &cfg)
 }
 
@@ -282,15 +297,17 @@ pub fn run() {
             let cfg = settings::load_config(&app.handle().clone());
 
             // --- Bandeja (system tray) ---
-            // MenuItem::with_id(app, id, texto, habilitado?, atalho). O item
-            // "status" fica desabilitado (false) de propósito: é só um rótulo.
+            // Rótulos já no idioma resolvido (segue o sistema ou o que o usuário
+            // fixou). MenuItem::with_id(app, id, texto, habilitado?, atalho). O
+            // item "status" fica desabilitado (false) de propósito: é só rótulo.
+            let labels = i18n::tray_labels(i18n::resolve(&cfg));
             let status_item =
                 MenuItem::with_id(app, "status", status_text(&cfg), false, None::<&str>)?;
             let print_item =
-                MenuItem::with_id(app, "print", "Imprimir agora", true, None::<&str>)?;
+                MenuItem::with_id(app, "print", labels.print, true, None::<&str>)?;
             let settings_item =
-                MenuItem::with_id(app, "settings", "Configurações…", true, None::<&str>)?;
-            let quit_item = MenuItem::with_id(app, "quit", "Sair", true, None::<&str>)?;
+                MenuItem::with_id(app, "settings", labels.settings, true, None::<&str>)?;
+            let quit_item = MenuItem::with_id(app, "quit", labels.quit, true, None::<&str>)?;
 
             // Junta os itens num menu, com separadores entre os grupos.
             let menu = Menu::with_items(
@@ -330,13 +347,13 @@ pub fn run() {
                         let app = app.clone();
                         std::thread::spawn(move || {
                             let mut cfg = settings::load_config(&app);
+                            let lang = i18n::resolve(&cfg);
                             match do_print(&app, &mut cfg) {
-                                Ok(()) => notify(
-                                    &app,
-                                    "Impressão enviada",
-                                    "Página de manutenção enviada para a impressora.",
-                                ),
-                                Err(e) => notify(&app, "Não consegui imprimir", &e),
+                                Ok(()) => {
+                                    let (title, body) = i18n::notif_sent(lang);
+                                    notify(&app, title, body);
+                                }
+                                Err(e) => notify(&app, i18n::notif_fail_title(lang), &e),
                             }
                         });
                     }
@@ -346,8 +363,14 @@ pub fn run() {
                 })
                 .build(app)?;
 
-            // Guarda o item de status no "estado" do app para atualizá-lo depois.
-            app.manage(TrayHandles { status_item });
+            // Guarda as alças dos itens no "estado" do app para atualizá-los
+            // depois (status a cada ciclo; rótulos ao trocar de idioma).
+            app.manage(TrayHandles {
+                status_item,
+                print_item,
+                settings_item,
+                quit_item,
+            });
 
             // --- Agendador ---
             // Thread em segundo plano: 5s após abrir e depois a cada 30 min,
