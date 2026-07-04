@@ -20,8 +20,12 @@ ficam nos _assets_ do release (em rascunho — revise e publique):
 | Windows    | `.exe` (NSIS, x64)             |
 | Linux      | `.AppImage`, `.deb`, `.rpm`    |
 
-> Sem os secrets de assinatura, o build **funciona** mas sai **sem assinar**: no macOS
-> abre com botão direito › _Abrir_; no Windows o SmartScreen mostra um aviso.
+> Por padrão o workflow mantém as variáveis de assinatura do macOS **comentadas**,
+> então o `.dmg` sai **sem assinatura** (abre com botão direito › _Abrir_) e o build
+> passa. **Atenção:** não basta deixar os secrets vazios — se a variável
+> `APPLE_CERTIFICATE` existir vazia, o build do macOS **falha**. Para assinar, cadastre
+> os 6 secrets abaixo **e** descomente o bloco correspondente no `release.yml`.
+> No Windows o `.exe`/`.msi` sempre sai sem assinatura (SmartScreen mostra um aviso).
 
 ## Assinatura + notarização do macOS (recomendado)
 

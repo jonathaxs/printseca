@@ -73,15 +73,20 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Assinatura + notarização macOS. Configure estes secrets no repositório
-          # (Settings › Secrets and variables › Actions). Se ficarem vazios, o
-          # build do macOS sai SEM assinatura (abre com botão direito › Abrir).
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # ── Assinatura + notarização do macOS (DESLIGADA por enquanto) ──
+          # IMPORTANTE: não basta os secrets ficarem vazios. Se a variável
+          # APPLE_CERTIFICATE existir (mesmo vazia), o bundler do Tauri tenta
+          # importar um certificado inexistente e o build do macOS FALHA. Por
+          # isso as linhas ficam COMENTADAS: assim o .dmg sai sem assinatura
+          # (abre com botão direito › Abrir) e o build passa.
+          # Para LIGAR a assinatura: cadastre os 6 secrets (ver
+          # printseca/docs/empacotamento-e-assinatura.md) e descomente abaixo.
+          # APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          # APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          # APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          # APPLE_ID: ${{ secrets.APPLE_ID }}
+          # APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          # APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
           projectPath: printseca
           args: ${{ matrix.args }}
