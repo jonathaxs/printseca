@@ -79,8 +79,8 @@ jobs:
           # importar um certificado inexistente e o build do macOS FALHA. Por
           # isso as linhas ficam COMENTADAS: assim o .dmg sai sem assinatura
           # (abre com botão direito › Abrir) e o build passa.
-          # Para LIGAR a assinatura: cadastre os 6 secrets (ver
-          # printseca/docs/empacotamento-e-assinatura.md) e descomente abaixo.
+          # Para LIGAR a assinatura: cadastre os 6 secrets (docs da Tauri em
+          # https://v2.tauri.app/distribute/sign/macos/) e descomente abaixo.
           # APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           # APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           # APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
