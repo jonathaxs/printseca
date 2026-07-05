@@ -64,6 +64,36 @@ struct StateView {
     theme: String,
 }
 
+// --- Ícone da bandeja por plataforma ---
+// macOS: ícone PRETO marcado como "template"; o sistema tinge sozinho (preto no
+//        modo claro, branco no escuro) — fica perfeito, então mantemos.
+// Windows: trocamos entre PRETO (barra clara) e BRANCO (barra escura) conforme o
+//        tema, senão o preto some na barra escura do Windows 11.
+// Linux: um CINZA fixo, porque detectar o tema do painel varia demais entre
+//        GNOME/KDE/etc. — o cinza é legível tanto em barra clara quanto escura.
+#[cfg(target_os = "macos")]
+fn tray_icon_bytes(_dark: bool) -> &'static [u8] {
+    include_bytes!("../icons/tray.png")
+}
+#[cfg(target_os = "linux")]
+fn tray_icon_bytes(_dark: bool) -> &'static [u8] {
+    include_bytes!("../icons/tray-gray.png")
+}
+#[cfg(target_os = "windows")]
+fn tray_icon_bytes(dark: bool) -> &'static [u8] {
+    if dark {
+        include_bytes!("../icons/tray-white.png")
+    } else {
+        include_bytes!("../icons/tray.png")
+    }
+}
+
+/// Monta a imagem do ícone da bandeja. `dark` = a barra/tema está no modo escuro
+/// (só influencia no Windows; nos demais o parâmetro é ignorado).
+fn tray_image(dark: bool) -> tauri::image::Image<'static> {
+    tauri::image::Image::from_bytes(tray_icon_bytes(dark)).expect("ícone da bandeja inválido")
+}
+
 /// Monta o StateView juntando a config salva + dados "ao vivo" (lista de
 /// impressoras e se o autostart está ligado).
 fn build_state_view<R: Runtime>(app: &AppHandle<R>, cfg: &Config) -> StateView {
@@ -330,21 +360,20 @@ pub fn run() {
                 ],
             )?;
 
-            // Ícone da bandeja: um PNG monocromático embutido no binário.
-            // include_bytes! copia o arquivo para dentro do executável durante
-            // a compilação, então não dependemos de empacotá-lo como recurso.
-            // Junto com `icon_as_template(true)`, o macOS pinta esse ícone de
-            // preto no modo claro e de branco no modo escuro, combinando com a
-            // barra de menu (nos demais sistemas o PNG é usado como está).
-            let tray_icon =
-                tauri::image::Image::from_bytes(include_bytes!("../icons/tray.png"))
-                    .expect("tray.png inválido");
+            // Ícone da bandeja (PNG embutido no binário via include_bytes!).
+            // Detectamos o tema da janela principal para, no Windows, escolher a
+            // versão preta ou branca do ícone (ver tray_icon_bytes acima).
+            let dark = app
+                .get_webview_window("main")
+                .and_then(|w| w.theme().ok())
+                .map(|t| t == tauri::Theme::Dark)
+                .unwrap_or(false);
+            let tray_icon = tray_image(dark);
 
             // Cria o ícone da bandeja com o menu acima.
             // on_menu_event = o que fazer quando clicam em cada item do menu.
-            let _tray = TrayIconBuilder::with_id("tray")
+            let tray_builder = TrayIconBuilder::with_id("tray")
                 .icon(tray_icon)
-                .icon_as_template(true)
                 .tooltip("Printseca")
                 .menu(&menu)
                 .show_menu_on_left_click(true)
@@ -368,8 +397,14 @@ pub fn run() {
                     "settings" => show_settings_window(app),
                     "quit" => app.exit(0),
                     _ => {}
-                })
-                .build(app)?;
+                });
+
+            // Só o macOS trata o ícone como "template" (tinge sozinho). No
+            // Windows/Linux usamos o PNG como está (preto/branco/cinza).
+            #[cfg(target_os = "macos")]
+            let tray_builder = tray_builder.icon_as_template(true);
+
+            let _tray = tray_builder.build(app)?;
 
             // Guarda as alças dos itens no "estado" do app para atualizá-los
             // depois (status a cada ciclo; rótulos ao trocar de idioma).
@@ -396,11 +431,22 @@ pub fn run() {
         })
         // Interceptamos o "fechar janela": em vez de encerrar o app, só a
         // escondemos — ele continua vivo na bandeja.
-        .on_window_event(|window, event| {
-            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+        .on_window_event(|window, event| match event {
+            // Fechar a janela não encerra o app — só esconde (segue na bandeja).
+            tauri::WindowEvent::CloseRequested { api, .. } => {
                 let _ = window.hide();
                 api.prevent_close();
             }
+            // Windows: ao alternar claro/escuro, repinta o ícone da bandeja na
+            // hora (preto na barra clara, branco na escura).
+            #[cfg(target_os = "windows")]
+            tauri::WindowEvent::ThemeChanged(theme) => {
+                if let Some(tray) = window.app_handle().tray_by_id("tray") {
+                    let dark = *theme == tauri::Theme::Dark;
+                    let _ = tray.set_icon(Some(tray_image(dark)));
+                }
+            }
+            _ => {}
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
