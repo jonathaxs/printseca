@@ -1,0 +1,107 @@
+========================================================================
+ PRINTSECA — HOW TO RUN ON MAC (no installer)
+========================================================================
+
+On macOS there is NO packaged installer: since the Mac owner is also the
+developer, the app runs straight from the source code.
+This guide lists what to install (just once) and the command to run it.
+
+Tested with: Node v25, npm 11, Rust 1.96 (Apple Silicon).
+
+
+------------------------------------------------------------------------
+ 1) APPLE COMMAND LINE TOOLS
+------------------------------------------------------------------------
+They provide the compiler (clang) that Rust needs. In the Terminal:
+
+    xcode-select --install
+
+(A small window opens; click "Install" and wait for it to finish.)
+
+
+------------------------------------------------------------------------
+ 2) HOMEBREW  (the Mac package manager)
+------------------------------------------------------------------------
+If you do NOT have Homebrew yet, install it with:
+
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+At the end it may ask you to run 2 lines to "add it to the PATH".
+Copy and paste the lines it shows you. To check:
+
+    brew --version
+
+
+------------------------------------------------------------------------
+ 3) NODE.JS  (runs the web part / frontend build)
+------------------------------------------------------------------------
+    brew install node
+
+Check:
+
+    node --version
+    npm --version
+
+
+------------------------------------------------------------------------
+ 4) RUST  (the "system side" of the app: tray, printing, etc.)
+------------------------------------------------------------------------
+Install it via rustup (the official installer):
+
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+Accept the default installation (option 1). Then CLOSE and reopen the
+Terminal, or run:
+
+    source "$HOME/.cargo/env"
+
+Check:
+
+    rustc --version
+    cargo --version
+
+
+------------------------------------------------------------------------
+ 5) GET THE CODE AND INSTALL THE PROJECT DEPENDENCIES
+------------------------------------------------------------------------
+Go into the app folder (the "printseca" folder, where this file is) and
+install the JavaScript dependencies:
+
+    cd path/to/printseca
+    npm install
+
+
+------------------------------------------------------------------------
+ 6) RUN
+------------------------------------------------------------------------
+>>> To USE/TEST right away (recommended for day-to-day):
+
+    npm run tauri dev
+
+This opens the app: the icon appears in the menu bar (top of the screen)
+and the settings window shows up. Closing the Terminal = closing the app.
+
+
+>>> To build a "real" app (Printseca.app) and keep using it:
+
+    npm run tauri build
+
+The app ends up at:
+
+    src-tauri/target/release/bundle/macos/Printseca.app
+
+Drag Printseca.app into the "Applications" folder. The FIRST time, since
+it is not signed, open it with right-click > Open (only once). After that
+it works like a normal app: it goes to the tray and can start together
+with the system (there is an option inside the app settings).
+
+
+------------------------------------------------------------------------
+ NOTES
+------------------------------------------------------------------------
+- Printing on the Mac uses CUPS (the "lp" command), which already ships
+  with macOS.
+- Windows and Linux use ready-made INSTALLERS (.exe / .deb / .rpm /
+  .AppImage) generated automatically by GitHub Actions — there you do
+  not need to install any of the tools above.
+========================================================================
