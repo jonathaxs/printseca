@@ -1,6 +1,6 @@
 [package]
 name = "printseca"
-version = "0.2.0"
+version = "0.3.0"
 description = "Lembrete e impressão automática para evitar que a tinta da impressora seque"
 authors = ["jonathaxs"]
 edition = "2021"
