@@ -302,6 +302,16 @@ fn set_autostart(app: AppHandle, enabled: bool) -> Result<bool, String> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Linux/Wayland: as decorações do GTK bugam no GNOME/KDE em Wayland e os
+    // botões da janela (minimizar/maximizar/fechar) ficam sem clicar (bug
+    // conhecido do Tauri/tao). Rodar sob XWayland via GDK_BACKEND=x11 contorna
+    // isso. Setamos ANTES de o GTK inicializar e só se o usuário não tiver
+    // definido nada — assim ele ainda pode forçar Wayland puro se quiser.
+    #[cfg(target_os = "linux")]
+    if std::env::var_os("GDK_BACKEND").is_none() {
+        std::env::set_var("GDK_BACKEND", "x11");
+    }
+
     // O Builder vai "encaixando" peças com .plugin(), .invoke_handler() e
     // .setup(); no fim, .run() inicia o loop principal do app.
     tauri::Builder::default()
