@@ -14,6 +14,7 @@
 // ============================================================================
 
 import { invoke } from "@tauri-apps/api/core";
+import { getVersion } from "@tauri-apps/api/app";
 import { applyStaticI18n, dateLocale, t, type Lang } from "./i18n";
 
 // Espelho, em TypeScript, da struct `StateView` do Rust (lib.rs). Os nomes dos
@@ -214,6 +215,12 @@ window.addEventListener("DOMContentLoaded", () => {
       cb.checked = !cb.checked; // reverte se deu erro
       toast(String(err), true);
     }
+  });
+
+  // Mostra a versão do app no rodapé. getVersion() lê do tauri.conf.json em
+  // tempo de execução, então nunca precisa ser atualizado à mão aqui.
+  getVersion().then((v) => {
+    $("#version").textContent = `Printseca v${v}`;
   });
 
   refresh(); // primeira carga: pega o estado e desenha a tela

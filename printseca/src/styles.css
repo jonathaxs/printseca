@@ -306,6 +306,13 @@ select {
   background: var(--late);
 }
 
+.footer {
+  text-align: center;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #1a1c20;
