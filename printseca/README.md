@@ -1,6 +1,6 @@
 # Printseca
 
-🇧🇷 [Português](#português) · 🇺🇸 [English](#english)
+[Português](#português) · [English](#english)
 
 ---
 

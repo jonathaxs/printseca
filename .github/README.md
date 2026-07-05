@@ -1,7 +1,5 @@
 # Printseca
 
-**🇧🇷 Português**
-
 App de desktop que lembra (e ajuda) a imprimir uma página de manutenção
 periodicamente, para evitar que a tinta da impressora resseque por desuso.
 
@@ -12,7 +10,7 @@ Os builds de release são gerados por [GitHub Actions](workflows/release.yml).
 
 ---
 
-**🇺🇸 English**
+**English**
 
 Desktop app that reminds you (and helps) to print a maintenance page
 periodically, to keep the printer ink from drying out from disuse.
