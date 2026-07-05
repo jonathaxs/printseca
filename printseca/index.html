@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="auto">
   <head>
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="/src/styles.css" />
@@ -67,6 +67,15 @@
         <div class="field">
           <label for="printer" data-i18n="settings.printer">Impressora</label>
           <select id="printer"></select>
+        </div>
+
+        <div class="field">
+          <label for="theme" data-i18n="settings.appearance">Aparência</label>
+          <select id="theme">
+            <option value="auto" data-i18n="theme.auto">Automático (sistema)</option>
+            <option value="light" data-i18n="theme.light">Claro</option>
+            <option value="dark" data-i18n="theme.dark">Escuro</option>
+          </select>
         </div>
 
         <div class="field">

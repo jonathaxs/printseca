@@ -31,6 +31,7 @@ interface State {
   printers: string[];
   lang: Lang; // idioma EFETIVO já resolvido pelo Rust ("pt"/"en")
   lang_pref: string; // preferência salva ("auto"/"pt"/"en")
+  theme: string; // aparência salva ("auto"/"light"/"dark")
 }
 
 // Idioma efetivo atual. É atualizado a cada render() e usado pelas mensagens
@@ -85,6 +86,10 @@ function render(s: State) {
   lang = s.lang;
   applyStaticI18n(lang);
 
+  // Aparência: aplica o tema no <html> (o CSS reage via data-theme). "auto"
+  // deixa o @media prefers-color-scheme decidir; "light"/"dark" forçam.
+  document.documentElement.dataset.theme = s.theme;
+
   const card = $("#status-card");
   const daysEl = $("#days");
   const label = $("#days-label");
@@ -119,6 +124,7 @@ function render(s: State) {
   setRadio("mode", s.mode);
   setRadio("color", String(s.color));
   ($("#lang") as HTMLSelectElement).value = s.lang_pref;
+  ($("#theme") as HTMLSelectElement).value = s.theme;
   ($("#autostart") as HTMLInputElement).checked = s.autostart;
 
   // Monta a lista de impressoras: "Padrão do sistema" + as detectadas pelo Rust.
@@ -150,6 +156,7 @@ async function save() {
       ?.value === "true";
   const printer = ($("#printer") as HTMLSelectElement).value || null;
   const langPref = ($("#lang") as HTMLSelectElement).value;
+  const themePref = ($("#theme") as HTMLSelectElement).value;
 
   // OBS: o Tauri converte camelCase (JS) -> snake_case (Rust) automaticamente,
   // por isso enviamos `intervalDays` e o Rust recebe `interval_days`.
@@ -159,6 +166,7 @@ async function save() {
     color,
     printer,
     lang: langPref,
+    theme: themePref,
   });
   render(st); // pode vir noutro idioma (se o usuário trocou o seletor)
   toast(t(st.lang, "toast.saved"));

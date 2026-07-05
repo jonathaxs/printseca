@@ -203,12 +203,25 @@ input[type="number"] {
 
 select {
   width: 100%;
-  padding: 10px;
+  padding: 10px 32px 10px 10px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--card);
+  background-color: var(--card);
   color: var(--text);
   font: inherit;
+  /* Sem o appearance nativo o WebKitGTK (Linux) passa a respeitar o
+     background/color do CSS — senão o widget desenha fundo branco e o texto
+     branco do dark mode some. A setinha some junto, então desenhamos uma. */
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888888' d='M2 4l4 4 4-4z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+/* Lista aberta do dropdown (Windows/Chromium respeitam; no Linux o SO decide). */
+option {
+  background: var(--card);
+  color: var(--text);
 }
 
 /* Segmented (radio cards) */
@@ -313,8 +326,20 @@ select {
   font-size: 0.78rem;
 }
 
+/* --- Aparência escura ---
+   O :root (acima) é o tema CLARO. A paleta escura entra em dois casos:
+   • data-theme="dark"  -> o usuário escolheu "Escuro" no seletor;
+   • data-theme="auto"  -> segue o sistema, e o sistema está no modo escuro.
+   Assim "Claro"/"Escuro" sobrepõem o sistema, e "Automático" acompanha ele. */
+:root[data-theme="dark"] {
+  --bg: #1a1c20;
+  --card: #24262c;
+  --text: #f1f2f4;
+  --muted: #9aa0ab;
+  --border: #34373f;
+}
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root[data-theme="auto"] {
     --bg: #1a1c20;
     --card: #24262c;
     --text: #f1f2f4;

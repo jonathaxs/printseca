@@ -60,6 +60,8 @@ struct StateView {
     lang: String,
     /// Preferência salva ("auto"/"pt"/"en") — o que o seletor mostra selecionado.
     lang_pref: String,
+    /// Aparência salva ("auto"/"light"/"dark") — aplicada via data-theme na janela.
+    theme: String,
 }
 
 /// Monta o StateView juntando a config salva + dados "ao vivo" (lista de
@@ -77,6 +79,7 @@ fn build_state_view<R: Runtime>(app: &AppHandle<R>, cfg: &Config) -> StateView {
         printers: printing::list_printers(),
         lang: i18n::code(i18n::resolve(cfg)).into(),
         lang_pref: cfg.lang.clone(),
+        theme: cfg.theme.clone(),
     }
 }
 
@@ -209,6 +212,7 @@ fn save_config(
     color: bool,
     printer: Option<String>,
     lang: String,
+    theme: String,
 ) -> StateView {
     let mut cfg = settings::load_config(&app);
     cfg.interval_days = interval_days.clamp(1, 365);
@@ -218,6 +222,10 @@ fn save_config(
     // Só aceita valores conhecidos; qualquer outra coisa vira "auto".
     cfg.lang = match lang.as_str() {
         "pt" | "en" => lang,
+        _ => "auto".into(),
+    };
+    cfg.theme = match theme.as_str() {
+        "light" | "dark" => theme,
         _ => "auto".into(),
     };
     settings::save_config(&app, &cfg);

@@ -38,6 +38,8 @@ pub struct Config {
     pub last_notified_ts: Option<u64>,
     /// Idioma da interface: "auto" (segue o sistema), "pt" ou "en".
     pub lang: String,
+    /// Aparência da janela: "auto" (segue o sistema), "light" ou "dark".
+    pub theme: String,
 }
 
 /// Valores iniciais quando ainda não há nada salvo (primeira execução).
@@ -51,6 +53,7 @@ impl Default for Config {
             last_print_ts: None,
             last_notified_ts: None,
             lang: "auto".into(),
+            theme: "auto".into(),
         }
     }
 }
