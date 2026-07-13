@@ -28,24 +28,26 @@ todas as tintas (ciano, magenta, amarelo e preto) ou apenas preto.
 
 | SO       | Formato                             | Arquitetura     |
 | -------- | ----------------------------------- | --------------- |
-| macOS    | rodar via código-fonte (sem assinatura, ver [COMO-RODAR-NO-MAC.txt](COMO-RODAR-NO-MAC.txt)) | Apple Silicon   |
-| Windows  | `.exe` (NSIS) / `.msi`              | x64             |
+| macOS    | `.zip` com o app pronto (sem assinatura — guia de abertura dentro do zip) | Apple Silicon   |
+| Windows  | `.exe` (NSIS)                       | x64             |
 | Linux    | `.AppImage` / `.deb` / `.rpm`       | x64             |
 
-### Download (Windows e Linux)
+### Download
 
-Os instaladores são gerados automaticamente pelo GitHub Actions e ficam nos
+Os pacotes são gerados automaticamente pelo GitHub Actions e ficam nos
 **Releases** do repositório. Baixe o formato da sua plataforma:
 
 | Plataforma        | Arquivo                       |
 | ----------------- | ----------------------------- |
+| macOS             | `Printseca-x.y.z-macos.zip`   |
 | Windows           | `Printseca_x.y.z_x64-setup.exe` |
 | Debian/Ubuntu     | `Printseca_x.y.z_amd64.deb`   |
 | Fedora/openSUSE   | `Printseca-x.y.z-1.x86_64.rpm` |
 | Linux (genérico)  | `Printseca_x.y.z_amd64.AppImage` |
 
-No macOS não há instalador: roda direto do código-fonte seguindo o
-[COMO-RODAR-NO-MAC.txt](COMO-RODAR-NO-MAC.txt).
+No macOS, como o app não é assinado pela Apple, o macOS pede uma autorização
+na primeira abertura — o passo a passo vem no `COMO-ABRIR-NO-MAC.txt` dentro
+do zip.
 
 ### Desenvolvimento
 
@@ -84,24 +86,26 @@ ink (cyan, magenta, yellow and black) or just black.
 
 | OS       | Format                              | Architecture    |
 | -------- | ----------------------------------- | --------------- |
-| macOS    | run from source (unsigned, see [HOW-TO-RUN-ON-MAC.txt](HOW-TO-RUN-ON-MAC.txt)) | Apple Silicon   |
-| Windows  | `.exe` (NSIS) / `.msi`              | x64             |
+| macOS    | `.zip` with the ready-to-run app (unsigned — open guide inside the zip) | Apple Silicon   |
+| Windows  | `.exe` (NSIS)                       | x64             |
 | Linux    | `.AppImage` / `.deb` / `.rpm`       | x64             |
 
-### Download (Windows and Linux)
+### Download
 
-The installers are built automatically by GitHub Actions and live under the
+The packages are built automatically by GitHub Actions and live under the
 repository **Releases**. Download the format for your platform:
 
 | Platform          | File                          |
 | ----------------- | ----------------------------- |
+| macOS             | `Printseca-x.y.z-macos.zip`   |
 | Windows           | `Printseca_x.y.z_x64-setup.exe` |
 | Debian/Ubuntu     | `Printseca_x.y.z_amd64.deb`   |
 | Fedora/openSUSE   | `Printseca-x.y.z-1.x86_64.rpm` |
 | Linux (generic)   | `Printseca_x.y.z_amd64.AppImage` |
 
-There is no macOS installer: it runs straight from the source by following
-[HOW-TO-RUN-ON-MAC.txt](HOW-TO-RUN-ON-MAC.txt).
+On macOS, since the app isn't signed by Apple, macOS asks for an authorization
+the first time you open it — the step-by-step is in `HOW-TO-OPEN-ON-MAC.txt`
+inside the zip.
 
 ### Development
 
