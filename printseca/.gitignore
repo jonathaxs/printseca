@@ -10,6 +10,8 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+# Artefatos de release (instaladores/zip) gerados pelo build — não versionar
+artifacts
 *.local
 
 # Auxiliar de impressão do Windows — baixado no CI, não versionar

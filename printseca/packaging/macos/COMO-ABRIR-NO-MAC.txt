@@ -1,0 +1,42 @@
+========================================================================
+ PRINTSECA — COMO ABRIR NO MAC
+========================================================================
+
+Como o Printseca não está assinado pela Apple, na primeira vez o macOS
+bloqueia a abertura. É seguro; é só autorizar uma vez:
+
+------------------------------------------------------------------------
+ PASSOS
+------------------------------------------------------------------------
+1) Arraste o Printseca.app para a pasta "Aplicativos".
+
+2) Dê um duplo-clique nele. Vai aparecer um aviso dizendo que o app não
+   pôde ser aberto (desenvolvedor não identificado). Clique em "OK".
+
+3) Abra Ajustes do Sistema > Privacidade e Segurança. Role até o fim:
+   vai ter uma mensagem sobre o Printseca ter sido bloqueado. Clique
+   em "Abrir Mesmo Assim" e confirme.
+
+4) Pronto. Nas próximas vezes ele abre normal.
+
+------------------------------------------------------------------------
+ IMPORTANTE: o Printseca vive na barra de menus (não tem janela nem
+ ícone no Dock)
+------------------------------------------------------------------------
+Depois de abrir, procure o ícone do Printseca na BARRA DE MENUS (canto
+superior direito, perto do relógio). Clique nele para ver o menu e
+escolher "Configurações", onde ficam a impressora, o intervalo e a
+opção de "iniciar com o sistema".
+
+------------------------------------------------------------------------
+ Se aparecer "o app está danificado" ou não abrir de jeito nenhum
+------------------------------------------------------------------------
+Isso é a "quarentena" que o macOS coloca em arquivos baixados. No
+Terminal, rode (ajuste o caminho se o app não estiver em Aplicativos):
+
+    xattr -dr com.apple.quarantine /Applications/Printseca.app
+
+Depois abra normalmente.
+
+Em inglês, veja HOW-TO-OPEN-ON-MAC.txt.
+========================================================================
