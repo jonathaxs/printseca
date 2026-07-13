@@ -17,13 +17,24 @@ use std::process::Command;
 use tauri::path::BaseDirectory;
 use tauri::{AppHandle, Manager, Runtime};
 
+// No Windows, quando um app GRÁFICO (sem console) inicia um processo de CONSOLE
+// como o PowerShell, o sistema abre um "prompt de comando" preto piscando na
+// tela. O `windows_subsystem = "windows"` só evita o console do PRÓPRIO app, não
+// dos filhos. A flag CREATE_NO_WINDOW (0x0800_0000) roda o filho sem console.
+// (Existe só no Windows; por isso os #[cfg] abaixo.)
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+#[cfg(target_os = "windows")]
+const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+
 /// Lista as impressoras disponíveis no sistema.
 pub fn list_printers() -> Vec<String> {
     // `lpstat -e` lista os nomes das impressoras (CUPS).
     #[cfg(not(target_os = "windows"))]
     let output = Command::new("lpstat").arg("-e").output();
 
-    // No Windows pedimos a lista ao PowerShell.
+    // No Windows pedimos a lista ao PowerShell. `creation_flags` evita o prompt
+    // de comando piscando na tela (ver CREATE_NO_WINDOW no topo do arquivo).
     #[cfg(target_os = "windows")]
     let output = Command::new("powershell")
         .args([
@@ -31,6 +42,7 @@ pub fn list_printers() -> Vec<String> {
             "-Command",
             "Get-Printer | Select-Object -ExpandProperty Name",
         ])
+        .creation_flags(CREATE_NO_WINDOW)
         .output();
 
     // Pega a saída do comando, quebra em linhas, remove espaços e linhas vazias.
@@ -118,6 +130,7 @@ pub fn print_pdf<R: Runtime>(
             }
         }
         cmd.arg("-silent").arg(&pdf); // -silent = sem abrir janela/diálogo
+        cmd.creation_flags(CREATE_NO_WINDOW); // sem prompt de comando piscando
         let status = cmd
             .status()
             .map_err(|e| format!("falha ao executar SumatraPDF: {e}"))?;
